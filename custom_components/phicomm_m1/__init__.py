@@ -137,7 +137,7 @@ class PhicommM1Server(TCPServer):
 
     def heartbeat(self):
         # log.info("ping")
-        for fileno, client in self.clients.items():
+        for fileno, client in list(self.clients.items()):
             data = b'\xaa\xef\x012\xeb\x119\x8f\x0b\x00\x00\x00\x00\x00\x00\x00\x00\xb0\xf8\x93\x11\xbe#\x007\x00\x00\x02{"type":5,"status":1}\xff#END#'
             try:
                 stream = client['stream']
@@ -148,7 +148,7 @@ class PhicommM1Server(TCPServer):
                     del self.clients[fileno]
 
     def change_brightness(self):
-        for fileno, client in self.clients.items():
+        for fileno, client in list(self.clients.items()):
             data = b'\xaa\xef\x012\xeb\x119\x8f\x0b\x00\x00\x00\x00\x00\x00\x00\x00\xb0\xf8\x93\x11\xbe#\x007\x00\x00\x02{"brightness":"%d","type":2}\xff#END#' % self._status.target_brightness
             try:
                 stream = client['stream']
