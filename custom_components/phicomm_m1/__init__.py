@@ -117,13 +117,16 @@ class PhicommM1Server(TCPServer):
         self.clients[fileno] = {'ip': ip, 'status': 0, 'stream': stream}
 
         while True:
+            data = ''
             try:
                 data = await stream.read_until('#END#'.encode("utf-8"))
                 self._status.state = self.parse_data(data)
                 # log.info(self._status.state)
-            except StreamClosedError:
+            except StreamClosedError as e:
+                log.error(e)
+                log.error("error data:"+data)
                 if self.clients.get(fileno):
-                    log.info("Client " + self.clients[fileno]['ip'] + " left.")
+                    log.error("handle_stream Client " + self.clients[fileno]['ip'] + " left.")
                     del self.clients[fileno]
                     break
 
@@ -137,15 +140,18 @@ class PhicommM1Server(TCPServer):
 
     def heartbeat(self):
         # log.info("ping")
+        data = ''
         for fileno, client in list(self.clients.items()):
             #data = b'\xaa\xef\x012\xeb\x119\x8f\x0b\x00\x00\x00\x00\x00\x00\x00\x00\xb0\xf8\x93\x11\xbe#\x007\x00\x00\x02{"type":5,"status":1}\xff#END#'
             data = b'\xaaO\x01%F\x119\x8f\x0b\x00\x00\x00\x00\x00\x00\x00\x00\xb0\xf8\x93\x11dR\x007\x00\x00\x02{"type":5,"status":1}\xff#END#'
             try:
                 stream = client['stream']
                 stream.write(data)
-            except StreamClosedError:
+            except StreamClosedError as e:
+                log.error(e)
+                log.error("error data:"+data)
                 if self.clients.get(fileno):
-                    log.info("Client " + self.clients[fileno]['ip'] + " left.")
+                    log.error("heartbeat Client " + self.clients[fileno]['ip'] + " left.")
                     del self.clients[fileno]
 
     def change_brightness(self):
